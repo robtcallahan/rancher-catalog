@@ -1,0 +1,103 @@
+version: '2'
+services:
+  FARMERSgov-MariaDB:
+    image: mariadb:10.2
+    environment:
+      MYSQL_DATABASE: ${mariadb_mysql_database}
+      MYSQL_PASSWORD: ${mariadb_mysql_password}
+      MYSQL_ROOT_PASSWORD: ${mariadb_mysql_root_password}
+      MYSQL_USER: ${mariadb_mysql_user}
+    stdin_open: true
+    volumes:
+    - /app/local/{{.Stack.Name}}-mariadb/mysql:/var/lib/mysql
+    tty: true
+    labels:
+      io.rancher.container.pull_image: always
+      io.rancher.scheduler.affinity:host_label: type=db
+  Apache:
+    #image: usdaoc/gov-drupal:${apache_tag}
+    #image: tk421jag/usda-drupal:${apache_tag}
+    image: robtcallahan/gov-drupal:${apache_tag}
+    environment:
+      DOCROOT: ${apache_docroot}
+      GIT_URL: ${apache_git_url}
+      GIT_BRANCH: ${apache_git_branch}
+    stdin_open: true
+    volumes:
+      - /var/application/docroot/sites/default/files:/drupal-files
+    # - /app/nas/$${stack_name}/public-content/:/mnt/public-content/
+    # - /app/nas/$${stack_name}/settings-php/:/mnt/settings-php/
+    # - /app/nas/$${stack_name}/sync/:/mnt/sync/
+    # - /app/nas/$${stack_name}/private-content/:/mnt/private-content/
+    tty: true
+    links:
+    - FARMERSgov-MariaDB:db
+    external_links:
+    - ${apache_mail_proxy}:mail-relay-platform
+    labels:
+      io.rancher.container.pull_image: always
+      io.rancher.scheduler.affinity:host_label: type=web
+  LoadBalancer:
+    image: rancher/lb-service-haproxy:v0.9.1
+    hostname: "farmers-dev"
+    ports:
+    - 80:80/tcp
+    labels:
+      io.rancher.scheduler.affinity:host_label: lb=true
+      io.rancher.container.agent.role: environmentAdmin,agent
+      io.rancher.container.agent_service.drain_provider: 'true'
+      io.rancher.container.create_agent: 'true'
+      io.rancher.scheduler.affinity:host_label: type=lb
+# {{- if ne .Values.dataimports_git_url "" }}
+#   DataImports:
+#     image: usdaoc/gov-drupal:latest
+#     environment:
+#       DOCROOT: /var/application
+#       GIT_URL: ${dataimports_git_url}
+#     stdin_open: true
+#     volumes:
+#     - /app/nas/{{.Stack.Name}}/private-content/:/mnt/private-content/
+#     tty: true
+#     labels:
+#       io.rancher.container.pull_image: always
+# {{- end }}
+#   Varnish:
+#     image: usdaoc/varnish-cache:eea-varnish
+#     environment:
+#       BACKENDS: ${varnish_backends}
+#       CACHE_SIZE: ${varnish_cache_size}
+#       BACKENDS_PROBE_INTERVAL: 3s
+#       DNS_ENABLED: 'true'
+#       BACKENDS_PROBE_URL: ${varnish_backends_probe_url}
+#     stdin_open: true
+#     tty: true
+#     links:
+#     - apache:apache
+#     labels:
+#       io.rancher.container.pull_image: always
+#       varnish: $${stack_name}
+#   Cron:
+#     image: usdaoc/gov-drupal:${apache_tag}
+#     environment:
+#       DOCROOT: ${apache_docroot}
+#       GIT_URL: ${apache_git_url}
+#       GIT_BRANCH: ${apache_git_branch}
+#     stdin_open: true
+#     volumes:
+#     - /app/nas/{{.Stack.Name}}/public-content/:/mnt/public-content/
+#     - /app/nas/{{.Stack.Name}}/settings-php/:/mnt/settings-php/
+#     - /app/nas/{{.Stack.Name}}/sync/:/mnt/sync/
+#     - /app/nas/{{.Stack.Name}}/private-content/:/mnt/private-content/
+#     tty: true
+#     links:
+#     - MariaDB:db
+#     external_links:
+#     - ${apache_mail_proxy}:mail-relay-platform
+#     command:
+#     - sh
+#     - -c
+#     - sed -i.bak /apachectl/d /run-httpd.sh && /run-httpd.sh && drush -r "$$DOCROOT" cron
+#     labels:
+#       io.rancher.container.start_once: 'true'
+#       io.rancher.container.pull_image: always
+#       cron.schedule: 0 */20 * * * *

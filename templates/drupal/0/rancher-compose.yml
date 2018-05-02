@@ -1,0 +1,98 @@
+.catalog:
+  name: USDA Drupal
+  version: 0.0.1
+  description: USDA Maintained Drupal Cluster
+  questions:
+    - variable: mariadb_mysql_database
+      label: Database Name
+      type: string
+      required: true
+      default: drupal
+    - variable: mariadb_mysql_user
+      label: Database Username
+      type: string
+      required: true
+      default: sysop_user
+    - variable: mariadb_mysql_password
+      label: Database Password
+      type: password
+      required: true
+      default: pQjvFHJQnfZBE2vK
+    - variable: mariadb_mysql_root_password
+      label: Database Root Password
+      type: password
+      required: true
+      default: pQjvFHJQnfZBE2vK
+    - variable: apache_tag
+      label: Apache Version Tag
+      type: string
+      required: true
+      description: Specify the Docker Image tag from the usdaoc/gov-drupal container repository.
+      #default: php70
+      default: latest
+    - variable: apache_docroot
+      label: Apache Document Root
+      type: string
+      required: true
+      # changed
+      default: /var/application/docroot
+    - variable: apache_git_url
+      label: Application Git URL
+      type: string
+      required: false
+      #default: https://bitbucket.org/usdawcmaas/wcmaas-portal.git
+      #default: https://github.com/robtcallahan/farmers.gov-core-dev-code.git
+      default: https://github.com/robtcallahan/usda-farmersgov.git
+      #default: https://r@bitbucket.org/mss-usda-farmersgov/usda-farmersgov.git
+    - variable: apache_git_branch
+      label: Application Git Branch
+      type: string
+      required: true
+      default: master
+    - variable: dataimports_git_url
+      label: Data Imports Git URL
+      type: string
+      required: false
+    - variable: varnish_backends
+      label: Varnish Backend Name
+      type: string
+      required: true
+      default: apache
+    - variable: varnish_cache_size
+      label: Varnish Cache Size
+      type: string
+      required: true
+      default: 256M
+    - variable: varnish_backends_probe_url
+      label: Varnish Backend Probe URL
+      type: string
+      required: true
+      description: Specify the URL for Varnish Healthcheck Probes.
+      default: /
+
+version: '2'
+services:
+  FARMERSgov-MariaDB:
+    scale: 1
+    start_on_create: true
+  Apache:
+    scale: 1
+    start_on_create: true
+  LoadBalancer:
+    scale: 1
+    lb_config:
+      port_rules:
+      - priority: 1
+        protocol: http
+        source_port: 80
+        target_port: 80
+        service: Apache
+  # DataImports:
+  #   scale: 1
+  #   start_on_create: true
+  # Varnish:
+  #   scale: 1
+  #   start_on_create: true
+  # Cron:
+  #   scale: 1
+  #   start_on_create: true
