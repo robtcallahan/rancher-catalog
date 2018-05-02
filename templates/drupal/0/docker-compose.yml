@@ -24,7 +24,7 @@ services:
       GIT_BRANCH: ${apache_git_branch}
     stdin_open: true
     volumes:
-      - /var/application/docroot/sites/default/files:/drupal-files
+      - /drupal-files:/var/application/docroot/sites/default/files
     # - /app/nas/$${stack_name}/public-content/:/mnt/public-content/
     # - /app/nas/$${stack_name}/settings-php/:/mnt/settings-php/
     # - /app/nas/$${stack_name}/sync/:/mnt/sync/
