@@ -40,10 +40,9 @@
       label: Application Git URL
       type: string
       required: false
+      default: https://bitbucket.org/mss-usda-farmersgov/usda-farmersgov.git
+      #default: https://github.com/robtcallahan/usda-farmersgov.git
       #default: https://bitbucket.org/usdawcmaas/wcmaas-portal.git
-      #default: https://github.com/robtcallahan/farmers.gov-core-dev-code.git
-      default: https://github.com/robtcallahan/usda-farmersgov.git
-      #default: https://r@bitbucket.org/mss-usda-farmersgov/usda-farmersgov.git
     - variable: apache_git_branch
       label: Application Git Branch
       type: string
